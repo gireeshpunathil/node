@@ -270,6 +270,26 @@ util.formatWithOptions({ colors: true }, 'See object %O', { foo: 42 });
 // when printed to a terminal.
 ```
 
+## util.getNodeReport()
+<!-- YAML
+added: v11.0.0
+-->
+
+* Returns: {string}
+
+Returns the nore report as a string.
+
+Generates a human readable diagnostic summary. The report is intended for
+development, test and production use, to capture and preserve information
+for problem determination. It includes JavaScript and native stack traces,
+heap statistics, platform information and resource usage etc. 
+
+```js
+const util = require('util');
+const report = util.getNodeReport();
+console.log(report);
+```
+
 ## util.getSystemErrorName(err)
 <!-- YAML
 added: v9.7.0
@@ -755,6 +775,55 @@ added: v8.0.0
 * {symbol} that can be used to declare custom promisified variants of functions,
 see [Custom promisified functions][].
 
+## util.setReportEvents(events)
+<!-- YAML
+added: v11.0.0
+-->
+
+* `events` {string}
+
+Runtime configuration of node report data capture. The string can be a comma-
+separated list of one or more of:
+`exception`: auto-generate a report on unhandled exceptions
+`fatalerror`: auto-generate a report on unhandled internal fault
+(such as out of memory errors or native assertions)
+`signal`: auto-generate a report in response to a signal raised on the process.
+This is convinient for collecting snapshot information of the running process at
+custom program points.
+
+```js
+const util = require('util');
+// trigger report only on uncaught exceptions
+util.setReportEvents('exception');
+
+// trigger for both internal error and external signal
+util.setReportEvents('fatalerror+signal');
+```
+
+## util.setReportSignal(signal)
+<!-- YAML
+added: v11.0.0
+-->
+
+* `signal` {string}
+
+Runtime modification to the node report data capture signal (default SIGUSR2).
+Convinient when the execution environment already uses SIGUSR2 for other
+purposes and wants Node to use another one for report generation purpose.
+
+```js
+const util = require('util');
+util.setReportSignal('SIGQUIT');
+```
+
+Multiple signals are allowed, in which case supply them as `OR` separated:
+
+```js
+const util = require('util');
+util.setReportSignal('SIGUSR2|SIGQUIT');
+```
+This function does not work on Windows.
+
 ## Class: util.TextDecoder
 <!-- YAML
 added: v8.3.0
@@ -918,6 +987,34 @@ encoded bytes.
 * {string}
 
 The encoding supported by the `TextEncoder` instance. Always set to `'utf-8'`.
+
+## util.triggerNodeReport([filename])
+<!-- YAML
+added: v11.0.0
+-->
+
+* `filename` {string} The file to write into. **Default:** an empty string.
+* Returns: {string} 
+
+Returns the filename of the generated report.
+
+Triggers and produces the node report (a human readable snapshot of the internal
+state of Node runtime), writes into a file at the location from where this Node
+process was launched.
+
+```js
+const util = require('util');
+util.triggerNodeReport();
+```
+
+When a report is triggered, start and end messages are issued to stderr and the
+filename of the report is returned to the caller. The default filename includes
+the date, time, PID and a sequence number. Alternatively, a filename can be
+specified as a parameter on the triggerNodeReport() call.
+
+```js
+util.triggerNodeReport('myReportName');
+```
 
 ## util.types
 <!-- YAML

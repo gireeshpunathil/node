@@ -1,5 +1,8 @@
 #include "node_internals.h"
 #include "node_watchdog.h"
+#if defined(NODE_REPORT)
+#include "node_report.h"
+#endif  // NODE_REPORT
 
 namespace node {
 namespace util {
@@ -209,6 +212,17 @@ void Initialize(Local<Object> target,
                              WatchdogHasPendingSigint);
 
   env->SetMethod(target, "safeGetenv", SafeGetenv);
+
+#if defined(NODE_REPORT)
+  nodereport::InitializeNodeReport();
+  env->SetMethod(target, "triggerNodeReport", nodereport::TriggerReport);
+  env->SetMethod(target, "getNodeReport", nodereport::GetReport);
+  env->SetMethod(target, "setNodeReportEvents", nodereport::SetEvents);
+  env->SetMethod(target, "setNodeReportSignal", nodereport::SetSignal);
+  env->SetMethod(target, "setNodeReportFileName", nodereport::SetFileName);
+  env->SetMethod(target, "setNodeReportDirectory", nodereport::SetDirectory);
+  env->SetMethod(target, "setNodeReportVerbose", nodereport::SetVerbose);
+#endif //  NODE_REPORT
 }
 
 }  // namespace util
