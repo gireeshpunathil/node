@@ -36,6 +36,7 @@
 * [Internationalization](intl.html)
 * [Modules](modules.html)
 * [Net](net.html)
+* [Node Report](node_report.html)
 * [OS](os.html)
 * [Path](path.html)
 * [Performance Hooks](perf_hooks.html)

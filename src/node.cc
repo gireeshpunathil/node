@@ -91,6 +91,10 @@
 #include <unicode/uvernum.h>
 #endif
 
+#if defined(NODE_REPORT)
+#include "node_report.h"
+#endif
+
 #if defined(LEAK_SANITIZER)
 #include <sanitizer/lsan_interface.h>
 #endif
@@ -197,6 +201,7 @@ static std::string trace_enabled_categories;  // NOLINT(runtime/string)
 static std::string trace_file_pattern =  // NOLINT(runtime/string)
   "node_trace.${rotation}.log";
 static bool abort_on_uncaught_exception = false;
+static std::string report_events;  // NOLINT(runtime/string)
 
 // Bit flag used to track security reverts (see node_revert.h)
 unsigned int reverted = 0;
@@ -2028,6 +2033,13 @@ static Local<Object> GetFeatures(Environment* env) {
   obj->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "tls_ocsp"), have_openssl);
   obj->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "tls"), have_openssl);
 
+#if defined(NODE_REPORT)
+  Local<Value> node_report = True(env->isolate());
+#else
+  Local<Value> node_report = False(env->isolate());
+#endif
+  obj->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "node_report"), node_report);
+
   return scope.Escape(obj);
 }
 
@@ -2573,6 +2585,13 @@ void LoadEnvironment(Environment* env) {
     return;
   }
 
+#if defined(NODE_REPORT)
+  if (!report_events.empty()) {
+    nodereport::InitializeNodeReport();
+    nodereport::SetEvents(env->isolate(), report_events.c_str());
+  }
+#endif
+
   // Bootstrap Node.js
   Local<Object> bootstrapper = Object::New(env->isolate());
   SetupBootstrapObject(env, bootstrapper);
@@ -3039,6 +3058,40 @@ static void ParseArgs(int* argc,
       // Also a V8 option.  Pass through as-is.
       new_v8_argv[new_v8_argc] = arg;
       new_v8_argc += 1;
+#if defined(NODE_REPORT)
+    } else if (strcmp(arg, "--report-events") == 0) {
+      const char* events = argv[index + 1];
+      if (events == nullptr) {
+        fprintf(stderr, "%s: %s requires an argument\n", argv[0], arg);
+        exit(9);
+      }
+
+      args_consumed += 1;
+
+      // if the --report-events flag is present but not the
+      // associated flags, we could be trapped to read-in
+      // the script name or any other token to be the flag.
+      // If the next token has nothing what we expected,
+      // insert the defaults: all three events.
+      if (!(strcasestr(events, "fatalerror,") ||
+            strcasestr(events, "fatalerror")) &&
+         (!(strcasestr(events, "exception,") ||
+            strcasestr(events, "exception"))) &&
+         (!(strcasestr(events, "signal,") ||
+            strcasestr(events, "signal")))) {
+           events = "fatalerror,signal,exception";
+
+           // avoid consumption of the next valid flag
+           args_consumed -= 1;
+      }
+      report_events = events;
+      // Replace ',' with '+' separators
+      std::size_t c = report_events.find_first_of(",");
+      while (c != std::string::npos) {
+        report_events.replace(c, 1, "+");
+        c = report_events.find_first_of(",", c + 1);
+      }
+#endif //  NODE_REPORT
     } else {
       // V8 option.  Pass through as-is.
       new_v8_argv[new_v8_argc] = arg;
