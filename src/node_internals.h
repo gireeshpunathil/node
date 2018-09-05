@@ -97,12 +97,6 @@ struct sockaddr;
 #define NODE_BUILTIN_ICU_MODULES(V)
 #endif
 
-#if NODE_REPORT
-#define NODE_BUILTIN_NODE_REPORT_MODULES(V) V(node_report)
-#else
-#define NODE_BUILTIN_NODE_REPORT_MODULES(V)
-#endif
-
 // A list of built-in modules. In order to do module registration
 // in node::Init(), need to add built-in modules in the following list.
 // Then in node::RegisterBuiltinModules(), it calls modules' registration
@@ -153,8 +147,7 @@ struct sockaddr;
 #define NODE_BUILTIN_MODULES(V)                                               \
   NODE_BUILTIN_STANDARD_MODULES(V)                                            \
   NODE_BUILTIN_OPENSSL_MODULES(V)                                             \
-  NODE_BUILTIN_ICU_MODULES(V)                                                 \
-  NODE_BUILTIN_NODE_REPORT_MODULES(V)
+  NODE_BUILTIN_ICU_MODULES(V)
 
 #define NODE_MODULE_CONTEXT_AWARE_CPP(modname, regfunc, priv, flags)          \
   static node::node_module _module = {                                        \

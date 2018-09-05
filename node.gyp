@@ -628,34 +628,7 @@
             'src/tls_wrap.h'
           ],
         }],
-        [ 'node_report=="true"', {
-        'sources': [
-          'src/node_report.cc',
-          'src/node_report_module.cc',
-          'src/node_report_utils.cc',
-        ],  
-        'defines': [
-          'NODE_REPORT',
-          'NODEREPORT_VERSION="1.0.0"',
-        ],  
-        'conditions': [
-          ['OS=="win"', {
-            'libraries': [
-              'dbghelp.lib',
-              'Netapi32.lib',
-              'PsApi.lib',
-              'Ws2_32.lib',
-            ],  
-            'dll_files': [
-              'dbghelp.dll',
-              'Netapi32.dll',
-              'PsApi.dll',
-              'Ws2_32.dll',
-            ],  
-          }], 
-        ],  
-      }], 
-     ],
+      ],
     },
     {
       'target_name': 'mkssldef',

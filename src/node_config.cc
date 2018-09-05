@@ -153,14 +153,6 @@ static void Initialize(Local<Object> target,
     v8EnvironmentFlags->Set(i, OneByteString(env->isolate(),
         v8_environment_flags[i]));
   }
-
-#if defined(NODE_REPORT)
-  const std::string& report_events = env->options()->report_events;
-  if (!report_events.empty()) {
-    READONLY_STRING_PROPERTY(target, "node_report", report_events);
-  }
-#endif  // NODE_REPORT
-
 }  // InitConfig
 
 }  // namespace node
