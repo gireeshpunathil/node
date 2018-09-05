@@ -82,6 +82,9 @@ class EnvironmentOptions {
   bool syntax_check_only = false;
   bool has_eval_string = false;
   std::string eval_string;
+#if defined(NODE_REPORT)
+  std::string report_events;
+#endif  // NODE_REPORT
   bool print_eval = false;
   bool force_repl = false;
 

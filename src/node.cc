@@ -90,6 +90,10 @@
 #include <unicode/uvernum.h>
 #endif
 
+#if defined(NODE_REPORT)
+#include "node_report.h"
+#endif
+
 #if defined(LEAK_SANITIZER)
 #include <sanitizer/lsan_interface.h>
 #endif
@@ -2332,6 +2336,14 @@ void LoadEnvironment(Environment* env) {
     return;
   }
 
+#if defined(NODE_REPORT)
+  auto env_opts = per_process_opts->per_isolate->per_env;
+  if (!env_opts->report_events.empty()) {
+    nodereport::InitializeNodeReport();
+    nodereport::SetEvents(env->isolate(), env_opts->report_events.c_str());
+  }
+#endif  // NODE_REPORT
+
   // Bootstrap Node.js
   Local<Object> bootstrapper = Object::New(env->isolate());
   SetupBootstrapObject(env, bootstrapper);
@@ -2646,6 +2658,18 @@ void ProcessArgv(std::vector<std::string>* args,
             args->at(0).c_str());
     exit(9);
   }
+
+#if defined(NODE_REPORT)
+  if (!env_opts->report_events.empty()) {
+    size_t pos = 0;
+    std::string& temp = env_opts->report_events;
+    while ((pos = temp.find(",", pos)) != std::string::npos) {
+         temp.replace(pos, 1, "+");
+         pos += 1;
+    }
+    env_opts->report_events = temp;
+  }
+#endif  //  NODE_REPORT
 
 #if HAVE_OPENSSL
   if (per_process_opts->use_openssl_ca && per_process_opts->use_bundled_ca) {
